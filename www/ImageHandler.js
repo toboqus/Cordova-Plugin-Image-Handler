@@ -30,12 +30,17 @@
 
 
 		//do the magic here
+		 cordova.exec(
+		 	 function(winParam) {
+	 			cb(null, winParam);
+	 		 },
+             function(error) {
+             	cb(error);
+             },
+             "ImageHandler",
+             "base64ToJpg",
+             [base64string, destDirectory, destFilename]);
 
-		if(true){
-			cb(null, "this should be the new fileURI");
-		}else{
-			cb("error");
-		}
 	};
 
 
@@ -56,12 +61,17 @@
 
 
 		//do magic here
+		cordova.exec(
+		 	 function(winParam) {
+	 	 		cb(null, winParam);
+	 		 },
+             function(error) {
+             	cb(error);
+             },
+             "ImageHandler",
+             "resize",
+             [fileLocation, maxsize]);
 
-		if(true){
-			cb(null, "this could be a boolean value");
-		}else{
-			cb("error");
-		}
 	};
 
 
@@ -84,12 +94,17 @@
 
 
 		//do magic here
+		cordova.exec(
+		 	 function(winParam) {
+	 	 		cb(null, winParam);
+	 		 },
+             function(error) {
+             	cb(error);
+             },
+             "ImageHandler",
+             "thumbnail",
+             [fileLocation, destDirectory, destFilename, size]);
 
-		if(true){
-			cb(null, "this should be the new fileURI");
-		}else{
-			cb("error");
-		}
 	};
 
 
@@ -98,5 +113,6 @@
 		resize:resize,
 		thumbnail:thumbnail
 	}
+	
 	
 })(this)
