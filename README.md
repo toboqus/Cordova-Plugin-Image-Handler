@@ -1,1 +1,3 @@
-# cordova-image-handler
+# Image handler plugin for Android & iOS
+
+
