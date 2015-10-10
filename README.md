@@ -7,6 +7,20 @@ This plugin provides a number of methods that can be used to manipulate images w
 
 ###base64ToJpg
 
+'''javascript
+  var cb = function(error, value){
+    if(error){
+      //handle error
+      return;
+    }
+    
+    //returns filepath
+    var filePath = value;
+  
+  }
+
+  window.ImageHandler.base64ToJpg(base64string, destDirectory, destFilename, cb)
+'''
 
 ###resize
 
