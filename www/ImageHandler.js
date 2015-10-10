@@ -106,12 +106,46 @@
              [fileLocation, destDirectory, destFilename, size]);
 
 	};
+	
+	
+	/**
+	* @name rotate
+	* @param {string} fileLocation
+	* @param {boolean} clockwise, optional
+	* @param {function} cb
+	* @description This function will rotate an image by 90 degrees in 
+	* either clockwise or anticlockwise direction. defaulting to clockwise.
+	*/
+	var rotate = function rotate(fileLocation, cb, clockwise) {
+
+		if(isEmpty(fileLocation) || isEmpty(maxsize)){
+			cb("One or more parameters are undefined or empty.");
+			return;
+		}
+		
+		var cw = (!typeof clockwise == "undefined") ? clockwise : true;
+
+
+		//do magic here
+		cordova.exec(
+		 	 function(winParam) {
+	 	 		cb(null, winParam);
+	 		 },
+             function(error) {
+             	cb(error);
+             },
+             "ImageHandler",
+             "rotate",
+             [fileLocation, cw]);
+
+	};
 
 
 	global.ImageHandler = {
 		base64ToJpg:base64ToJpg,
 		resize:resize,
-		thumbnail:thumbnail
+		thumbnail:thumbnail,
+		rotate:rotate
 	}
 	
 	
