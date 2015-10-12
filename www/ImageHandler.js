@@ -1,8 +1,7 @@
-(function(){
 
-	"use strict";
 
-	var ImageHandler = {};
+	var imageHandler = exports;
+	var exec = require('cordova/exec');
 
 	/**
 	* @name isEmpty
@@ -10,7 +9,7 @@
 	* is of 0 length, null or an empty string.
 	*/
 	var isEmpty = function isEmpty(str) {
-		return (str.length === 0 || str === null || str === "");
+		return (str === null || str.length === 0 || str === "");
 	};
 
 
@@ -28,7 +27,7 @@
 			}
 		}
 
-		return false;;
+		return false;
 	}
 
 
@@ -81,7 +80,7 @@
 
 
 		//do the magic here
-		 cordova.exec(
+		exec(
 		 	 function(winParam) {
 	 			cb(null, winParam);
 	 		 },
@@ -118,7 +117,7 @@
 
 
 		//do magic here
-		cordova.exec(
+		exec(
 		 	 function(winParam) {
 	 	 		cb(null, winParam);
 	 		 },
@@ -161,7 +160,7 @@
 
 
 		//do magic here
-		cordova.exec(
+		exec(
 		 	 function(winParam) {
 	 	 		cb(null, winParam);
 	 		 },
@@ -234,7 +233,7 @@
 
 
 		//do magic here
-		cordova.exec(
+		exec(
 		 	 function(winParam) {
 	 	 		cb(null, winParam);
 	 		 },
@@ -246,9 +245,3 @@
              [results.fileLocation, finalRotation]);
 
 	};
-
-
-	//expose the handler
-	module.exports = imageHandler;
-	
-})()
