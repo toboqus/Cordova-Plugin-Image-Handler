@@ -1,6 +1,8 @@
-(function(global){
+(function(){
 
 	"use strict";
+
+	var ImageHandler = {};
 
 	/**
 	* @name isEmpty
@@ -11,19 +13,68 @@
 		return (str.length === 0 || str === null || str === "");
 	};
 
+
+	/**
+	* @name isValid
+	* @returns {boolean}
+	* @description will loop through correct values and if value
+	* is contained within, it will return true
+	*/
+	var isValid = function isValid(correctArray, value){
+
+		for(var valueArray of correctArray){
+			if(value === valueArray){
+				return true;
+			}
+		}
+
+		return false;;
+	}
+
+
+	/**
+	* @name decorate
+	* @param {object} template
+	* @param {object} object
+	* @return {object}
+	*/
+	var decorate = function decorate(template, object){
+		var result = {};
+		
+		for(var key in template){
+			if(object.hasOwnProperty(key)){
+				result[key] = object[key];
+			}else{
+				result[key] = template[key];
+			}
+		}
+
+		return result;
+	}
+
 	/**
 	* @name base64ToJpg
-	* @param {String} base64string
-	* @param {String} destDirectory
-	* @param {String} destFilename
+	* @param {object} options
 	* @param {function} cb
 	* @description This function will save a base64 encoded string into a jpg image
 	* to be stored in the directory with the filename provided. The callback will then be
 	* fired with either a path to the newely created file or an error.
 	*/
-	var base64ToJpg = function base64ToJpg(base64string, destDirectory, destFilename, cb){
+	imageHandler.base64ToJpg = function base64ToJpg(options, cb){
 
-		if(isEmpty(base64string) || isEmpty(destDirectory) || isEmpty(destFilename)){
+		//define expected parameters to decorate with
+		var template = {
+			base64string:null,
+			destDirectory:null,
+			destFilename:null
+		}
+
+		var result = decorate(template, options);
+
+		if(isEmpty(result.base64string) 
+			|| isEmpty(result.destDirectory) 
+			|| isEmpty(result.destFilename)){
+
 			cb("One or more parameters are undefined or empty.");
 			return;
 		}
@@ -39,22 +90,28 @@
              },
              "ImageHandler",
              "base64ToJpg",
-             [base64string, destDirectory, destFilename]);
+             [result.base64string, result.destDirectory, result.destFilename]);
 
 	};
 
 
 	/**
 	* @name resize
-	* @param {string} fileLocation
-	* @param {integer} maxsize
+	* @param {object} options
 	* @param {function} cb
 	* @description This function will resize an image to a height/width
 	* of a maximum size, whilst maintaining the aspect ratio of the image.
 	*/
-	var resize = function resize(fileLocation, maxsize, cb) {
+	imageHandler.resize = function resize(options, cb) {
 
-		if(isEmpty(fileLocation) || isEmpty(maxsize)){
+		var template = {
+			fileLocation: null,
+			maxSize: null
+		}
+
+		var result = decorate(template, options);
+
+		if(isEmpty(results.fileLocation) || isEmpty(results.maxSize)){
 			cb("One or more parameters are undefined or empty.");
 			return;
 		}
@@ -70,24 +127,34 @@
              },
              "ImageHandler",
              "resize",
-             [fileLocation, maxsize]);
+             [results.fileLocation, results.maxSize]);
 
 	};
 
 
 	/**
 	* @name thumbnail
-	* @param {String} fileLocation
-	* @param {String} destDirectory
-	* @param {String} destFilename
-	* @param {integer} size
+	* @param {object} options
 	* @param {function} cb
 	* @description This function will generate a square jpg thumbnail in the directory specified 
 	* with a specific height/width.
 	*/
-	var thumbnail = function thumbnail(fileLocation, destDirectory, destFilename, size, cb) {
+	imageHandler.thumbnail = function thumbnail(options, cb) {
 
-		if(isEmpty(fileLocation) || isEmpty(destDirectory) || isEmpty(destFilename) || isEmpty(size)){
+		var template = {
+			fileLocation: null,
+			destDirectory: null,
+			destFilename: null,
+			thumbSize: null
+		}
+
+		var result = decorate(template, options);
+
+		if(isEmpty(results.fileLocation) 
+			|| isEmpty(results.destDirectory) 
+			|| isEmpty(results.destFilename) 
+			|| isEmpty(results.thumbSize)){
+
 			cb("One or more parameters are undefined or empty.");
 			return;
 		}
@@ -103,27 +170,67 @@
              },
              "ImageHandler",
              "thumbnail",
-             [fileLocation, destDirectory, destFilename, size]);
+             [results.fileLocation, results.destDirectory
+             	, results.destFilename, results.thumbSize]);
 
 	};
 	
 	
 	/**
 	* @name rotate
-	* @param {string} fileLocation
-	* @param {boolean} clockwise, optional
+	* @param {object} options
 	* @param {function} cb
-	* @description This function will rotate an image by 90 degrees in 
-	* either clockwise or anticlockwise direction. defaulting to clockwise.
+	* @description This function will rotate an image 
 	*/
-	var rotate = function rotate(fileLocation, cb, clockwise) {
+	imageHandler.rotate = function rotate(options, cb) {
 
-		if(isEmpty(fileLocation) || isEmpty(maxsize)){
+		var template = {
+			fileLocation: null,
+			direction: null,
+			degrees: null
+		}
+		, validDegrees = [90, 180, 270]
+		, finalRotation = 0;
+
+
+		//validation
+		if(isEmpty(results.fileLocation) 
+			|| isEmpty(results.direction)
+			|| isEmpty(results.degrees)){
 			cb("One or more parameters are undefined or empty.");
 			return;
 		}
+
+		if(!isValid(validDegrees, results.degrees)){
+			cb("Degrees must be valid");
+			return;
+		}
 		
-		var cw = (!typeof clockwise == "undefined") ? clockwise : true;
+		switch(results.direction){
+			case "ANTICLOCKWISE":{
+				
+				//reverse rotations for anticlockwise.
+				if(results.degrees === 90){
+					finalRotation = 270;
+				}else if(results.degrees === 270){
+					finalRotation = 90;
+				}else{
+					finalRotation = results.degrees;
+				}
+
+				break;
+			} 
+			case "CLOCKWISE":{
+				//tis all good man... keep going.
+				finalRotation = results.degrees;
+				
+				break;
+			}
+			default: {
+				cb("direction of rotation is not recognised");
+				return;
+			}
+		}
 
 
 		//do magic here
@@ -136,17 +243,12 @@
              },
              "ImageHandler",
              "rotate",
-             [fileLocation, cw]);
+             [results.fileLocation, finalRotation]);
 
 	};
 
 
-	global.ImageHandler = {
-		base64ToJpg:base64ToJpg,
-		resize:resize,
-		thumbnail:thumbnail,
-		rotate:rotate
-	}
+	//expose the handler
+	module.exports = imageHandler;
 	
-	
-})(this)
+})()
