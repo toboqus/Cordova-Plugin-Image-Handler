@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+            id="cordova-image-handler" version="0.0.1">
+        <name>Image Handler</name>
+        <description>Cordova Image Handler</description>
+        <license></license>
+        <keywords>cordova,image,handler,image handler</keywords>
+        <js-module src="www/ImageHandler.js" name="ImageHandler">
+            <clobbers target="ImageHandler" />
+        </js-module>
+        <platform name="android">
+            <config-file target="config.xml" parent="/*">
+                <feature name="ImageHandler">
+                    <param name="android-package" value="net.alexyorke.ImageHandler"/>
+                </feature>
+            </config-file>
+
+            <source-file src="src/android/ImageHandler.java" target-dir="src/net/alexyorke/imagehandler" />
+        </platform>
+        <platform name="ios">
+
+        </platform>
+    </plugin>
