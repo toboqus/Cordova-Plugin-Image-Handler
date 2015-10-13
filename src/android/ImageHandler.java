@@ -23,6 +23,10 @@ public class ImageHandler extends CordovaPlugin {
 
     public static final String LOG_TAG = ImageHandler.class.getSimpleName();
 
+    public static final String JPG_EXT = ".jpg";
+    public static final String THUMBNAIL = "-thumb";
+
+
     public boolean execute(String action, final JSONArray args, final CallbackContext callbackContext)
             throws JSONException {
 
@@ -38,7 +42,7 @@ public class ImageHandler extends CordovaPlugin {
                     resize(callbackContext, args);
                 }
             });
-        }else if(action.equals("thumbnails")){
+        }else if(action.equals("thumbnail")){
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     thumbnail(callbackContext, args);
@@ -73,21 +77,24 @@ public class ImageHandler extends CordovaPlugin {
         String mFilePath;
 
         try {
-
             base64Image = args.getString(0);
             directory = args.getString(1);
             imageName = args.getString(2);
-            if(directory == null || imageName == null){
-                callbackContext.error("Could not parse the parameters");
-                return;
-            }
-            mFilePath = directory + imageName + ".jpg";
 
         }catch(JSONException e){
             e.printStackTrace();
             callbackContext.error("Could not parse the parameters");
             return;
         }
+
+        if(directory == null || imageName == null){
+            callbackContext.error("Could not parse the parameters");
+            return;
+        }
+
+        //add / end of directory
+        directory = formatDirectory(directory);
+        mFilePath = constructImagePath(directory, imageName);
 
         //does not contain predata - reject
         if(!isValidImage(base64Image) || !isValidExtension(getBase64Extension(base64Image))){
@@ -99,34 +106,25 @@ public class ImageHandler extends CordovaPlugin {
             String imageDataBytes = base64Image.substring(base64Image.indexOf(",") + 1);
             Bitmap finalImage = whiteBackground(Base64ToBitmap(imageDataBytes));
 
+            if(finalImage == null){
+                callbackContext.error("Could not save image");
+                return;
+            }
+
             File directoryLoc = new File(URI.create(directory));
             File file = new File(URI.create(mFilePath));
 
-            //ensure that directory structure exists
             if (!directoryLoc.exists()) {
-                directoryLoc.mkdirs();
+                directoryLoc.mkdirs(); //ensure that directory structure exists
             }
-            //create file if it doesnt exist
+
             if (!file.exists()){
-                file.createNewFile();
+                file.createNewFile();//create file if it doesnt exist
             }
 
-            FileOutputStream out = null;
-            try {
-                out = new FileOutputStream(file);
-                finalImage.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (out != null) {
-                        out.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                finalImage.recycle();
+            if(!saveImage(finalImage, file)){
+                callbackContext.error("Could not save image");
+                return;
             }
 
         } catch(Exception e) {
@@ -139,7 +137,83 @@ public class ImageHandler extends CordovaPlugin {
     }
 
     private void resize(CallbackContext callbackContext, JSONArray args){
-        callbackContext.success(); // Thread-safe.
+        String currentDirectory
+                , currentFilename
+                , currImagePath
+                , destDirectory
+                , destFilename
+                , destImagePath;
+        int maxSize;
+
+        try{
+            currentDirectory = args.getString(0);
+            currentFilename = args.getString(1);
+            maxSize = args.getInt(2);
+            destDirectory = args.getString(3);
+            destFilename = args.getString(4);
+
+        }catch(JSONException e){
+            e.printStackTrace();
+            callbackContext.error("Could not parse the parameters");
+            return;
+        }
+
+        if(currentDirectory == null
+                || currentFilename == null
+                || maxSize <= 0){
+            callbackContext.error("Could not parse the parameters");
+            return;
+        }
+
+        currentDirectory = formatDirectory(currentDirectory);
+        destDirectory = formatDirectory((destDirectory == null) ? currentDirectory : destDirectory);
+        destFilename = (destFilename == null) ? currentFilename : destFilename;
+
+        try {
+            destImagePath = constructImagePath(destDirectory, destFilename);
+            currImagePath = constructImagePath(currentDirectory, currentFilename);
+            File currImage = new File(URI.create(currImagePath));
+
+            //check if the image exists
+            if (!currImage.exists()) {
+                callbackContext.error("Image does not exist!");
+                return;
+            }
+
+            Bitmap currentImage = BitmapFactory.decodeFile(currImage.getPath());
+            if (currentImage == null) {
+                callbackContext.error("Could not load image to be resized");
+                return;
+            }
+
+            Bitmap resizedImage = getScaledBitmap(currentImage, maxSize);
+            if (resizedImage == null) {
+                callbackContext.error("Could not resize image");
+                return;
+            }
+
+            File destImage = new File(URI.create(destImagePath));
+            File destDirectoryLoc = new File(URI.create(destDirectory));
+
+            if (!destDirectoryLoc.exists()) {
+                destDirectoryLoc.mkdirs(); //ensure that directory structure exists
+            }
+
+            if (!destImage.exists()) {
+                destImage.createNewFile();//create file if it doesnt exist
+            }
+
+            if (!saveImage(resizedImage, destImage)) {
+                callbackContext.error("Could not save image");
+                return;
+            }
+
+            callbackContext.success(destImagePath); // Thread-safe.
+
+        }catch(Exception e){
+            e.printStackTrace();
+            callbackContext.error("Could not save image");
+        }
     }
 
     private void thumbnail(CallbackContext callbackContext, JSONArray args){
@@ -171,6 +245,7 @@ public class ImageHandler extends CordovaPlugin {
 
     }
 
+
     /**
      *
      * @param extension extension of the image
@@ -189,6 +264,7 @@ public class ImageHandler extends CordovaPlugin {
         return false;
     }
 
+
     /**
      * will return the extension of the image
      * @param base64Image the base64 encoded image
@@ -201,6 +277,7 @@ public class ImageHandler extends CordovaPlugin {
 
         return (isValidExtension(ext)) ? ext : null;
     }
+
 
     /**
      * will attempt to get a Bitmap from a base64 string
@@ -233,6 +310,7 @@ public class ImageHandler extends CordovaPlugin {
         return bmOverlay;
     }
 
+
     /**
      * This method will ensure that transparency is handled
      * when saving pngs to a jpg
@@ -254,5 +332,104 @@ public class ImageHandler extends CordovaPlugin {
 
         return finalImage;
     }
+
+
+    /**
+     *
+     * @param directory path of the directory
+     * @param imageName name of the image without the extension
+     * @return the filepath to the image
+     */
+    private String constructImagePath(String directory, String imageName){
+
+        if(directory == null || imageName == null){
+            return null;
+        }
+
+        return directory + imageName + JPG_EXT;
+    }
+
+
+    /**
+     *
+     * @param directory path of the directory
+     * @return directory after formatting has taken place
+     */
+    private String formatDirectory(String directory){
+        if(directory == null){
+            return null;
+        }
+
+        return (directory.endsWith("/")) ? directory : directory+"/";
+    }
+
+
+    /**
+     * This method will return a scaled bitmap. It will return null
+     * if the supplied image is null, max size is less than or equal to zero
+     * or the image is already too small.
+     * @param image bitmap image to resize
+     * @param maxSize the maximum size in either direction
+     * @return resized bitmap
+     */
+    private Bitmap getScaledBitmap(Bitmap image, int maxSize){
+        if(image == null
+                || maxSize <= 0
+                || (image.getHeight() < maxSize && image.getWidth() < maxSize)){
+            return null;
+        }
+
+        int finalw, finalh;
+        double factor = 1.0d;
+
+        if(image.getWidth() > image.getHeight()){
+            finalw = maxSize;
+            factor = ((double)image.getHeight()/(double)image.getWidth());
+            finalh = (int)(finalw * factor);
+        }else{
+            finalh = maxSize;
+            factor = ((double)image.getWidth()/(double)image.getHeight());
+            finalw = (int)(finalh * factor);
+        }
+
+        return Bitmap.createScaledBitmap(image, finalw, finalh, true);
+    }
+
+
+    /**
+     * This method will save a bitmap image as a jpg in the specified
+     * file. The file and directory structure must be set up before saving
+     * @param image bitmap image to save
+     * @param file file to save the image into
+     * @return true if the image was able to save, false if not.
+     */
+    private boolean saveImage(Bitmap image, File file){
+
+        if(image == null || file == null){
+            return false;
+        }
+
+        FileOutputStream out = null;
+        try {
+            out = new FileOutputStream(file);
+            image.compress(Bitmap.CompressFormat.JPEG, 100, out);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            image.recycle();
+        }
+
+        return true;
+    }
+
 
 }
