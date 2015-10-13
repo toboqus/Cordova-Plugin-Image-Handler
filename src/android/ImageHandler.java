@@ -87,7 +87,7 @@ public class ImageHandler extends CordovaPlugin {
             return;
         }
 
-        if(directory == null || imageName == null){
+        if(directory.equals("null") || imageName.equals("null")){
             callbackContext.error("Could not parse the parameters");
             return;
         }
@@ -111,15 +111,10 @@ public class ImageHandler extends CordovaPlugin {
                 return;
             }
 
-            File directoryLoc = new File(URI.create(directory));
             File file = new File(URI.create(mFilePath));
-
-            if (!directoryLoc.exists()) {
-                directoryLoc.mkdirs(); //ensure that directory structure exists
-            }
-
-            if (!file.exists()){
-                file.createNewFile();//create file if it doesnt exist
+            if(!ConstructFileStructure(file)){
+                callbackContext.error("Could not create file structure");
+                return;
             }
 
             if(!saveImage(finalImage, file)){
@@ -136,10 +131,15 @@ public class ImageHandler extends CordovaPlugin {
         callbackContext.success(mFilePath); // Thread-safe.
     }
 
+    /**
+     *
+     * @param callbackContext
+     * @param args
+     */
     private void resize(CallbackContext callbackContext, JSONArray args){
         String currentDirectory
                 , currentFilename
-                , currImagePath
+                , currentImagePath
                 , destDirectory
                 , destFilename
                 , destImagePath;
@@ -158,21 +158,22 @@ public class ImageHandler extends CordovaPlugin {
             return;
         }
 
-        if(currentDirectory == null
-                || currentFilename == null
+        if(currentDirectory.equals("null")
+                || currentFilename.equals("null")
                 || maxSize <= 0){
             callbackContext.error("Could not parse the parameters");
             return;
         }
 
         currentDirectory = formatDirectory(currentDirectory);
-        destDirectory = formatDirectory((destDirectory == null) ? currentDirectory : destDirectory);
-        destFilename = (destFilename == null) ? currentFilename : destFilename;
+        destDirectory =
+                formatDirectory((destDirectory.equals("null")) ? currentDirectory : destDirectory);
+        destFilename =  (destFilename.equals("null")) ? currentFilename : destFilename;
 
         try {
             destImagePath = constructImagePath(destDirectory, destFilename);
-            currImagePath = constructImagePath(currentDirectory, currentFilename);
-            File currImage = new File(URI.create(currImagePath));
+            currentImagePath = constructImagePath(currentDirectory, currentFilename);
+            File currImage = new File(URI.create(currentImagePath));
 
             //check if the image exists
             if (!currImage.exists()) {
@@ -193,14 +194,9 @@ public class ImageHandler extends CordovaPlugin {
             }
 
             File destImage = new File(URI.create(destImagePath));
-            File destDirectoryLoc = new File(URI.create(destDirectory));
-
-            if (!destDirectoryLoc.exists()) {
-                destDirectoryLoc.mkdirs(); //ensure that directory structure exists
-            }
-
-            if (!destImage.exists()) {
-                destImage.createNewFile();//create file if it doesnt exist
+            if(!ConstructFileStructure(destImage)){
+                callbackContext.error("Could not create file structure");
+                return;
             }
 
             if (!saveImage(resizedImage, destImage)) {
@@ -217,7 +213,79 @@ public class ImageHandler extends CordovaPlugin {
     }
 
     private void thumbnail(CallbackContext callbackContext, JSONArray args){
-        callbackContext.success(); // Thread-safe.
+        String currentDirectory
+                , currentFilename
+                , currentImagePath
+                , destDirectory
+                , destFilename
+                , destImagePath;
+        int thumbSize;
+
+        try{
+            currentDirectory = args.getString(0);
+            currentFilename = args.getString(1);
+            thumbSize = args.getInt(2);
+            destDirectory = args.getString(3);
+            destFilename = args.getString(4);
+
+        }catch(JSONException e){
+            e.printStackTrace();
+            callbackContext.error("Could not parse the parameters");
+            return;
+        }
+
+        if(currentDirectory.equals("null")
+                || currentFilename.equals("null")
+                || thumbSize <= 0){
+            callbackContext.error("Could not parse the parameters");
+            return;
+        }
+
+        currentDirectory = formatDirectory(currentDirectory);
+        destDirectory =
+                formatDirectory((destDirectory.equals("null")) ? currentDirectory : destDirectory);
+        destFilename =  (destFilename.equals("null")) ? currentFilename+THUMBNAIL : destFilename;
+
+        try {
+            destImagePath = constructImagePath(destDirectory, destFilename);
+            currentImagePath = constructImagePath(currentDirectory, currentFilename);
+            File currImage = new File(URI.create(currentImagePath));
+
+            //check if the image exists
+            if (!currImage.exists()) {
+                callbackContext.error("Image does not exist!");
+                return;
+            }
+
+            Bitmap currentImage = BitmapFactory.decodeFile(currImage.getPath());
+            if (currentImage == null) {
+                callbackContext.error("Could not load the image");
+                return;
+            }
+
+            Bitmap resizedImage = getThumbnailBitmap(currentImage, thumbSize);
+            if (resizedImage == null) {
+                callbackContext.error("Could not create thumbnail");
+                return;
+            }
+
+            File destImage = new File(URI.create(destImagePath));
+            if(!ConstructFileStructure(destImage)){
+                callbackContext.error("Could not create file structure");
+                return;
+            }
+
+            if (!saveImage(resizedImage, destImage)) {
+                callbackContext.error("Could not save image");
+                return;
+            }
+
+            callbackContext.success(destImagePath); // Thread-safe.
+
+        }catch(Exception e){
+            e.printStackTrace();
+            callbackContext.error("Could not save image");
+        }
     }
 
     private void rotate(CallbackContext callbackContext, JSONArray args){
@@ -397,6 +465,50 @@ public class ImageHandler extends CordovaPlugin {
 
 
     /**
+     *
+     * @param image
+     * @param size
+     * @return
+     */
+    private Bitmap getThumbnailBitmap(Bitmap image, int size){
+
+        if(image == null
+                || size <= 0
+                || image.getWidth() < size
+                || image.getHeight() < size){
+            return null; //handle bad data
+        }
+
+        int resizedHeight, resizedWidth, x, y;
+        double factor = 1.0d;
+
+        if(image.getWidth() > image.getHeight()){
+            factor = ((double)image.getWidth()/(double)image.getHeight());
+
+            resizedHeight = size;
+            resizedWidth = (int)(resizedHeight * factor);
+            x = (resizedWidth-size)/2; //get offset
+            y = 0;
+        }else{
+            factor = ((double)image.getHeight()/(double)image.getWidth());
+
+            resizedWidth = size;
+            resizedHeight = (int)(resizedWidth * factor);
+            y = (resizedHeight-size)/2; //get offset
+            x = 0;
+        }
+
+        Bitmap resizedImg = Bitmap.createScaledBitmap(image, resizedWidth, resizedHeight, true);
+
+        Bitmap res = Bitmap.createBitmap(resizedImg, x, y, size, size);
+        resizedImg.recycle();
+        return res;
+    }
+
+
+
+
+    /**
      * This method will save a bitmap image as a jpg in the specified
      * file. The file and directory structure must be set up before saving
      * @param image bitmap image to save
@@ -428,6 +540,32 @@ public class ImageHandler extends CordovaPlugin {
             image.recycle();
         }
 
+        return true;
+    }
+
+
+    /**
+     *
+     * @param file
+     * @return
+     */
+    private boolean ConstructFileStructure(File file){
+        if(file == null){
+            return false;
+        }
+
+        if(!file.getParentFile().exists()){
+            file.getParentFile().mkdirs();
+        }
+
+        try{
+            if(!file.exists()){
+                file.createNewFile();
+            }
+        }catch(IOException e){
+            e.printStackTrace();
+            return false;
+        }
         return true;
     }
 
