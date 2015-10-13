@@ -289,7 +289,80 @@ public class ImageHandler extends CordovaPlugin {
     }
 
     private void rotate(CallbackContext callbackContext, JSONArray args){
-        callbackContext.success(); // Thread-safe.
+        String currentDirectory
+                , currentFilename
+                , currentImagePath
+                , destDirectory
+                , destFilename
+                , destImagePath;
+        int finalRotation;
+
+        try{
+            currentDirectory = args.getString(0);
+            currentFilename = args.getString(1);
+            destDirectory = args.getString(2);
+            destFilename = args.getString(3);
+            finalRotation = args.getInt(4);
+
+        }catch(JSONException e){
+            e.printStackTrace();
+            callbackContext.error("Could not parse the parameters");
+            return;
+        }
+
+        if(currentDirectory.equals("null")
+                || currentFilename.equals("null")
+                || (finalRotation != 90 && finalRotation != 180 && finalRotation != 270)){
+            callbackContext.error("Could not parse the parameters");
+            return;
+        }
+
+        currentDirectory = formatDirectory(currentDirectory);
+        destDirectory =
+                formatDirectory((destDirectory.equals("null")) ? currentDirectory : destDirectory);
+        destFilename =  (destFilename.equals("null")) ? currentFilename : destFilename;
+
+        try {
+            destImagePath = constructImagePath(destDirectory, destFilename);
+            currentImagePath = constructImagePath(currentDirectory, currentFilename);
+            File currImage = new File(URI.create(currentImagePath));
+
+            //check if the image exists
+            if (!currImage.exists()) {
+                callbackContext.error("Image does not exist!");
+                return;
+            }
+
+            Bitmap currentImage = BitmapFactory.decodeFile(currImage.getPath());
+            if (currentImage == null) {
+                callbackContext.error("Could not load the image");
+                return;
+            }
+
+            Bitmap rotatedImage = rotateBitmap(currentImage, finalRotation);
+            if (rotatedImage == null) {
+                callbackContext.error("Could not rotate image");
+                return;
+            }
+
+            File destImage = new File(URI.create(destImagePath));
+            if(!ConstructFileStructure(destImage)){
+                callbackContext.error("Could not create file structure");
+                return;
+            }
+
+            if (!saveImage(rotatedImage, destImage)) {
+                callbackContext.error("Could not save image");
+                return;
+            }
+
+            callbackContext.success(destImagePath); // Thread-safe.
+
+        }catch(Exception e){
+            e.printStackTrace();
+            callbackContext.error("Could not save image");
+        }
+
     }
 
 
@@ -567,6 +640,17 @@ public class ImageHandler extends CordovaPlugin {
             return false;
         }
         return true;
+    }
+
+
+    private static Bitmap rotateBitmap(Bitmap source, int angle){
+        if(source == null){
+            return null;
+        }
+
+        Matrix matrix = new Matrix();
+        matrix.postRotate((float)angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
 
