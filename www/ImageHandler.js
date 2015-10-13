@@ -181,9 +181,9 @@
              "thumbnail",
              [results.currentDirectory
              	, results.currentFilename
+	         	, results.thumbSize
              	, results.destDirectory
-	         	, result.destFilename
-	         	, result.thumbSize]);
+	         	, results.destFilename]);
 
 	};
 	
@@ -262,7 +262,7 @@
              [results.currentDirectory
              	, results.currentFilename
              	, results.destDirectory
-	         	, result.destFilename
+	         	, results.destFilename
 	         	, finalRotation]);
 
 	};
