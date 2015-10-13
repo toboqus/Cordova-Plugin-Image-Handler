@@ -68,11 +68,11 @@
 			destFilename:null
 		}
 
-		var result = decorate(template, options);
+		var results = decorate(template, options);
 
-		if(isEmpty(result.base64string) 
-			|| isEmpty(result.destDirectory) 
-			|| isEmpty(result.destFilename)){
+		if(isEmpty(results.base64string)
+			|| isEmpty(results.destDirectory)
+			|| isEmpty(results.destFilename)){
 
 			cb("One or more parameters are undefined or empty.");
 			return;
@@ -89,9 +89,9 @@
              },
              "ImageHandler",
              "base64ToJpg",
-             [result.base64string, result.destDirectory, result.destFilename]);
+             [results.base64string, results.destDirectory, results.destFilename]);
 
-	};
+	}
 
 
 	/**
@@ -102,19 +102,21 @@
 	* of a maximum size, whilst maintaining the aspect ratio of the image.
 	*/
 	imageHandler.resize = function resize(options, cb) {
-
 		var template = {
 			fileLocation: null,
-			maxSize: null
+			fileName: null,
+			maxSize: null,
+			destDirectory: '',
+			destFilename: ''
 		}
 
-		var result = decorate(template, options);
-
-		if(isEmpty(results.fileLocation) || isEmpty(results.maxSize)){
+		var results = decorate(template, options);
+		if(isEmpty(results.fileLocation) 
+			|| isEmpty(results.fileName) 
+			|| isEmpty(results.maxSize)){
 			cb("One or more parameters are undefined or empty.");
 			return;
 		}
-
 
 		//do magic here
 		exec(
@@ -126,9 +128,9 @@
              },
              "ImageHandler",
              "resize",
-             [results.fileLocation, results.maxSize]);
+             [results.fileLocation, results.fileName, results.maxSize, results.destDirectory, results.destFilename]);
 
-	};
+	}
 
 
 	/**
@@ -147,7 +149,7 @@
 			thumbSize: null
 		}
 
-		var result = decorate(template, options);
+		var results = decorate(template, options);
 
 		if(isEmpty(results.fileLocation) 
 			|| isEmpty(results.destDirectory) 
@@ -170,7 +172,7 @@
              "ImageHandler",
              "thumbnail",
              [results.fileLocation, results.destDirectory
-             	, results.destFilename, results.thumbSize]);
+             	, result.destFilename, result.thumbSize]);
 
 	};
 	
