@@ -207,6 +207,7 @@
 		, validDegrees = [90, 180, 270]
 		, finalRotation = 0;
 
+		var results = decorate(template, options);
 
 		//validation
 		if(isEmpty(results.currentDirectory) 
