@@ -89,7 +89,9 @@
              },
              "ImageHandler",
              "base64ToJpg",
-             [results.base64string, results.destDirectory, results.destFilename]);
+             [results.base64string
+             , results.destDirectory
+             , results.destFilename]);
 
 	}
 
@@ -103,16 +105,16 @@
 	*/
 	imageHandler.resize = function resize(options, cb) {
 		var template = {
-			fileLocation: null,
-			fileName: null,
+			currentDirectory: null,
+			currentFilename: null,
 			maxSize: null,
-			destDirectory: '',
-			destFilename: ''
+			destDirectory: null,
+			destFilename: null
 		}
 
 		var results = decorate(template, options);
-		if(isEmpty(results.fileLocation) 
-			|| isEmpty(results.fileName) 
+		if(isEmpty(results.currentDirectory) 
+			|| isEmpty(results.currentFilename) 
 			|| isEmpty(results.maxSize)){
 			cb("One or more parameters are undefined or empty.");
 			return;
@@ -128,7 +130,11 @@
              },
              "ImageHandler",
              "resize",
-             [results.fileLocation, results.fileName, results.maxSize, results.destDirectory, results.destFilename]);
+             [results.currentDirectory
+             , results.currentFilename
+             , results.maxSize
+             , results.destDirectory
+             , results.destFilename]);
 
 	}
 
@@ -143,7 +149,8 @@
 	imageHandler.thumbnail = function thumbnail(options, cb) {
 
 		var template = {
-			fileLocation: null,
+			currentDirectory: null,
+			currentFilename: null,
 			destDirectory: null,
 			destFilename: null,
 			thumbSize: null
@@ -151,7 +158,8 @@
 
 		var results = decorate(template, options);
 
-		if(isEmpty(results.fileLocation) 
+		if(isEmpty(results.currentDirectory) 
+			|| isEmpty(results.currentFilename) 
 			|| isEmpty(results.destDirectory) 
 			|| isEmpty(results.destFilename) 
 			|| isEmpty(results.thumbSize)){
@@ -171,8 +179,11 @@
              },
              "ImageHandler",
              "thumbnail",
-             [results.fileLocation, results.destDirectory
-             	, result.destFilename, result.thumbSize]);
+             [results.currentDirectory
+             	, results.currentFilename
+             	, results.destDirectory
+	         	, result.destFilename
+	         	, result.thumbSize]);
 
 	};
 	
@@ -186,7 +197,10 @@
 	imageHandler.rotate = function rotate(options, cb) {
 
 		var template = {
-			fileLocation: null,
+			currentDirectory: null,
+			currentDirectory: null,
+			destDirectory:null,
+			destFilename: null,
 			direction: null,
 			degrees: null
 		}
@@ -195,7 +209,8 @@
 
 
 		//validation
-		if(isEmpty(results.fileLocation) 
+		if(isEmpty(results.currentDirectory) 
+			|| isEmpty(results.currentFilename) 
 			|| isEmpty(results.direction)
 			|| isEmpty(results.degrees)){
 			cb("One or more parameters are undefined or empty.");
@@ -244,6 +259,10 @@
              },
              "ImageHandler",
              "rotate",
-             [results.fileLocation, finalRotation]);
+             [results.currentDirectory
+             	, results.currentFilename
+             	, results.destDirectory
+	         	, result.destFilename
+	         	, finalRotation]);
 
 	};
