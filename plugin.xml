@@ -17,7 +17,16 @@
 
             <source-file src="src/android/ImageHandler.java" target-dir="src/net/alexyorke/imagehandler" />
         </platform>
-        <platform name="ios">
+         <platform name="ios">
+
+            <config-file target="config.xml" parent="/*">
+                <feature name="ImageHandler">
+                    <param name="ios-package" value="ImageHandler" />
+                </feature>
+            </config-file>
+
+            <header-file src="src/ios/ImageHandler.h" />
+            <source-file src="src/ios/ImageHandler.m" />
 
         </platform>
     </plugin>
