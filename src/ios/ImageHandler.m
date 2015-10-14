@@ -30,6 +30,7 @@
     if([imageBase64 length] == 0 || [destDirectory length] == 0 || [destFilename length] == 0){
         return;
     }
+    destDirectory = [self correctPath:destDirectory];
     
     //Convert base64 to JPG image
     NSURL *url = [NSURL URLWithString:imageBase64];
@@ -97,12 +98,25 @@
     NSString* destFilename;
     
     //Check if all the parameters are valid
-    if([maxSize intValue] < 1) [self callback:CDVCommandStatus_ERROR withMessage:@"Invalid size specified" toCallbackId:command.callbackId];
-    if([[command arguments] objectAtIndex:3] == [NSNull null]){destDirectory = @"";}else{destDirectory = [[command arguments] objectAtIndex:3]; destDirectory = [destDirectory substringFromIndex:7];}
-    if([[command arguments] objectAtIndex:4] == [NSNull null]){destFilename = @"";}else{destFilename = [[command arguments] objectAtIndex:4];}
+    if([maxSize intValue] < 1){
+        [self callback:CDVCommandStatus_ERROR withMessage:@"Invalid size specified" toCallbackId:command.callbackId];
+    }
+    if([[command arguments] objectAtIndex:3] == [NSNull null]){
+        destDirectory = @"";
+    }else{
+        destDirectory = [[command arguments] objectAtIndex:3];
+        destDirectory = [destDirectory substringFromIndex:7];
+        destDirectory = [self correctPath:destDirectory];
+    }
+    if([[command arguments] objectAtIndex:4] == [NSNull null]){
+        destFilename = @"";
+    }else{
+        destFilename = [[command arguments] objectAtIndex:4];
+    }
         
     //Get the original image
     currentDirectory = [currentDirectory substringFromIndex:7];
+    currentDirectory = [self correctPath:currentDirectory];
     NSString* fullPath = [NSString stringWithFormat:@"%@%@.jpg", currentDirectory, currentFilename];
     UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
     
@@ -144,20 +158,20 @@
         }
         
         //Generate destination directory
-        destDirectory = [destDirectory substringFromIndex:7]; //Subtracting "file://" url unrecognized by Obj-C
-        BOOL isDirectory;
-        if([[NSFileManager defaultManager] fileExistsAtPath:destDirectory isDirectory:&isDirectory] == false){
-            NSError * error = nil;
-            [[NSFileManager defaultManager] createDirectoryAtPath:destDirectory
-                                      withIntermediateDirectories:YES
-                                                       attributes:nil
-                                                            error:&error];
-            if (error != nil) {
-                NSLog(@"error creating directory: %@", error);
-                [self callback:CDVCommandStatus_ERROR withMessage:@"Error creating directory" toCallbackId:command.callbackId];
+        if ([destDirectory length] != 0) {
+            BOOL isDirectory;
+            if([[NSFileManager defaultManager] fileExistsAtPath:destDirectory isDirectory:&isDirectory] == false){
+                NSError * error = nil;
+                [[NSFileManager defaultManager] createDirectoryAtPath:destDirectory
+                                          withIntermediateDirectories:YES
+                                                           attributes:nil
+                                                                error:&error];
+                if (error != nil) {
+                    NSLog(@"error creating directory: %@", error);
+                    [self callback:CDVCommandStatus_ERROR withMessage:@"Error creating directory" toCallbackId:command.callbackId];
+                }
             }
         }
-        
         //Save image
         if ([UIImageJPEGRepresentation(resizedImage, 1.0) writeToFile:newPath atomically:NO]) {
             [self callback:CDVCommandStatus_OK withMessage:[NSString stringWithFormat:@"file://%@", newPath] toCallbackId:command.callbackId];
@@ -205,12 +219,25 @@
     NSNumber* thumbSize = [NSNumber numberWithInt:[thumbSizeString intValue]];
     NSString* destDirectory;
     NSString* destFilename;
-    if([thumbSize intValue] < 1) [self callback:CDVCommandStatus_ERROR withMessage:@"Invalid size specified" toCallbackId:command.callbackId];
-    if([[command arguments] objectAtIndex:3] == [NSNull null]){destDirectory = @"";}else{destDirectory = [[command arguments] objectAtIndex:3]; destDirectory = [destDirectory substringFromIndex:7];}
-    if([[command arguments] objectAtIndex:4] == [NSNull null]){destFilename = @"";}else{destFilename = [[command arguments] objectAtIndex:4];}
+    if([thumbSize intValue] < 1){
+        [self callback:CDVCommandStatus_ERROR withMessage:@"Invalid size specified" toCallbackId:command.callbackId];
+    }
+    if([[command arguments] objectAtIndex:3] == [NSNull null]){
+        destDirectory = @"";
+    }else{
+        destDirectory = [[command arguments] objectAtIndex:3];
+        destDirectory = [destDirectory substringFromIndex:7];
+        destDirectory = [self correctPath:destDirectory];
+    }
+    if([[command arguments] objectAtIndex:4] == [NSNull null]){
+        destFilename = @"";
+    }else{
+        destFilename = [[command arguments] objectAtIndex:4];
+    }
     
     
     currentDirectory = [currentDirectory substringFromIndex:7];
+    currentDirectory = [self correctPath:currentDirectory];
     NSString* fullPath = [NSString stringWithFormat:@"%@%@.jpg", currentDirectory, currentFilename];
     UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
     
@@ -253,19 +280,22 @@
         }
         
         //Generate directory
-        destDirectory = [destDirectory substringFromIndex:7]; //Subtracting "file://" url unrecognized by Obj-C
-        BOOL isDirectory;
-        if([[NSFileManager defaultManager] fileExistsAtPath:destDirectory isDirectory:&isDirectory] == false){
-            NSError * error = nil;
-            [[NSFileManager defaultManager] createDirectoryAtPath:destDirectory
-                                      withIntermediateDirectories:YES
-                                                       attributes:nil
-                                                            error:&error];
-            if (error != nil) {
-                NSLog(@"error creating directory: %@", error);
-                [self callback:CDVCommandStatus_ERROR withMessage:@"Error creating directory" toCallbackId:command.callbackId];
+        if ([destDirectory length] != 0) {
+            
+            BOOL isDirectory;
+            if([[NSFileManager defaultManager] fileExistsAtPath:destDirectory isDirectory:&isDirectory] == false){
+                NSError * error = nil;
+                [[NSFileManager defaultManager] createDirectoryAtPath:destDirectory
+                                          withIntermediateDirectories:YES
+                                                           attributes:nil
+                                                                error:&error];
+                if (error != nil) {
+                    NSLog(@"error creating directory: %@", error);
+                    [self callback:CDVCommandStatus_ERROR withMessage:@"Error creating directory" toCallbackId:command.callbackId];
+                }
             }
         }
+        
         
         //Save image
         if ([UIImageJPEGRepresentation(resizedImage, 1.0) writeToFile:newPath atomically:NO]) {
@@ -319,11 +349,22 @@
     NSNumber* degrees = [NSNumber numberWithInt:[degreesString intValue]];
     
     //Check destination folder and filename are nill
-    if([[command arguments] objectAtIndex:2] == [NSNull null]){destDirectory = @"";}else{destDirectory = [[command arguments] objectAtIndex:2]; destDirectory = [destDirectory substringFromIndex:7];}
-    if([[command arguments] objectAtIndex:3] == [NSNull null]){destFilename = @"";}else{destFilename = [[command arguments] objectAtIndex:3];}
+    if([[command arguments] objectAtIndex:2] == [NSNull null]){
+        destDirectory = @"";
+    }else{
+        destDirectory = [[command arguments] objectAtIndex:2];
+        destDirectory = [destDirectory substringFromIndex:7];
+        destDirectory = [self correctPath:destDirectory];
+    }
+    if([[command arguments] objectAtIndex:3] == [NSNull null]){
+        destFilename = @"";
+    }else{
+        destFilename = [[command arguments] objectAtIndex:3];
+    }
     
     //Get the original image
     currentDirectory = [currentDirectory substringFromIndex:7];
+    currentDirectory = [self correctPath:currentDirectory];
     NSString* fullPath = [NSString stringWithFormat:@"%@%@.jpg", currentDirectory, currentFilename];
     UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
     
@@ -410,17 +451,18 @@
         }
         
         //Generate directory
-        destDirectory = [destDirectory substringFromIndex:7]; //Subtracting "file://" url unrecognized by Obj-C
-        BOOL isDirectory;
-        if([[NSFileManager defaultManager] fileExistsAtPath:destDirectory isDirectory:&isDirectory] == false){
-            NSError * error = nil;
-            [[NSFileManager defaultManager] createDirectoryAtPath:destDirectory
-                                      withIntermediateDirectories:YES
-                                                       attributes:nil
-                                                            error:&error];
-            if (error != nil) {
-                NSLog(@"error creating directory: %@", error);
-                [self callback:CDVCommandStatus_ERROR withMessage:@"Error creating directory" toCallbackId:command.callbackId];
+        if ([destDirectory length] != 0) {
+            BOOL isDirectory;
+            if([[NSFileManager defaultManager] fileExistsAtPath:destDirectory isDirectory:&isDirectory] == false){
+                NSError * error = nil;
+                [[NSFileManager defaultManager] createDirectoryAtPath:destDirectory
+                                          withIntermediateDirectories:YES
+                                                           attributes:nil
+                                                                error:&error];
+                if (error != nil) {
+                    NSLog(@"error creating directory: %@", error);
+                    [self callback:CDVCommandStatus_ERROR withMessage:@"Error creating directory" toCallbackId:command.callbackId];
+                }
             }
         }
         
@@ -490,6 +532,18 @@
                                messageAsString:msg];
     
     [self.commandDelegate sendPluginResult:result callbackId:callbackId];
+}
+
+/**
+ Check if a directory path ends with a "/", if not append and return
+ */
+-(NSString *)correctPath:(NSString *)pathStr{
+    if ([pathStr hasSuffix:@"/"]) {
+        return pathStr;
+    }else{
+        NSString *newStr = [pathStr stringByAppendingString:@"/"];
+        return newStr;
+    }
 }
 
 @end
