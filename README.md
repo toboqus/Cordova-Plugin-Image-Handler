@@ -11,7 +11,7 @@ After the plugin has been installed succesfully, it is a simple case of calling 
 
 ###base64ToJpg
 
-This method will convert a base64 encoded image string into a jpg file within the given directory with the specified filename.
+This function will convert a base64 encoded image string into a jpg file within the given directory with the specified filename.
 
 ```javascript
 
@@ -37,7 +37,7 @@ window.ImageHandler.base64ToJpg(options, cb);
 
 ###resize
 
-This method will resize a given image to a maximum width/heigh whilst maintaining its aspect ratio. If the destDirectory is omitted, it will save the image in the current directory. if the destFilename is omitted, it will save the image with the currentFilename. if both destFilename and destDirectory are omitted, it will replace the selected image.
+This function will resize a given image to a maximum width/heigh whilst maintaining its aspect ratio. If the destDirectory is omitted, it will save the image in the current directory. if the destFilename is omitted, it will save the image with the currentFilename. if both destFilename and destDirectory are omitted, it will replace the selected image.
 
 ```javascript
 var options = {
@@ -63,34 +63,57 @@ window.ImageHandler.resize(options, cb);
 
 ###thumbnail
 
+This function will create a thumbnail from a given image (a square image with a width and height being defined in the options object). If the destDirectory is omitted, it will save the image in the current directory. if the destFilename is omitted, it will save the image with the currentFilename appended by "-thumb".
+
 ```javascript
+
+var options = {
+		currentDirectory: cordova.file.externalRootDirectory,
+		currentFilename: "originalImage",
+		destDirectory: cordova.file.externalRootDirectory,
+		destFilename: "originalImage-thumb",
+		thumbSize: 200 //200px X 200px
+	};
+
 var cb = function(error, value){
    if(error){
       //handle error
       return;
     }
 
-   //returns filepath
+   //returns filepath of resized image: file:///storage/emulated/0/originalImage-thumb.jpg (android)
    var filePath = value;
 
 }
 
-window.ImageHandler.thumbnail(fileLocation, destDirectory, destFilename, size, cb);
+window.ImageHandler.thumbnail(options, cb);
 ```
 
 ###rotate
 
+This function will rotate an image either 'ANTICLOCKWISE' or 'CLOCKWISE' by a degree of 90/180/270. if the destFilename and destDirectory is the same it will override the original image, else it will take on the value of the currentFilename/currentDirectory if undefined.
+
 ```javascript
+
+var options = {
+		currentDirectory: cordova.file.externalRootDirectory,
+		currentFilename: "originalImage",
+		destDirectory: cordova.file.externalRootDirectory,
+		destFilename: "originalImage-rotated",
+		direction: "ANTICLOCKWISE",
+		degrees: 90
+	};
+	
 var cb = function(error, value){
    if(error){
       //handle error
       return;
     }
 
-   //returns filepath
+   //returns filepath of resized image: file:///storage/emulated/0/originalImage-rotated.jpg (android)
    var filePath = value;
 
 }
 
-window.ImageHandler.rotate(fileLocation, cb);
+window.ImageHandler.rotate(options, cb);
 ```
