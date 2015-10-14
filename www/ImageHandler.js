@@ -39,7 +39,7 @@
 	*/
 	var decorate = function decorate(template, object){
 		var result = {};
-		
+
 		for(var key in template){
 			if(object.hasOwnProperty(key)){
 				result[key] = object[key];
@@ -113,8 +113,8 @@
 		}
 
 		var results = decorate(template, options);
-		if(isEmpty(results.currentDirectory) 
-			|| isEmpty(results.currentFilename) 
+		if(isEmpty(results.currentDirectory)
+			|| isEmpty(results.currentFilename)
 			|| isEmpty(results.maxSize)){
 			cb("One or more parameters are undefined or empty.");
 			return;
@@ -143,7 +143,7 @@
 	* @name thumbnail
 	* @param {object} options
 	* @param {function} cb
-	* @description This function will generate a square jpg thumbnail in the directory specified 
+	* @description This function will generate a square jpg thumbnail in the directory specified
 	* with a specific height/width.
 	*/
 	imageHandler.thumbnail = function thumbnail(options, cb) {
@@ -158,10 +158,8 @@
 
 		var results = decorate(template, options);
 
-		if(isEmpty(results.currentDirectory) 
-			|| isEmpty(results.currentFilename) 
-			|| isEmpty(results.destDirectory) 
-			|| isEmpty(results.destFilename) 
+		if(isEmpty(results.currentDirectory)
+			|| isEmpty(results.currentFilename)
 			|| isEmpty(results.thumbSize)){
 
 			cb("One or more parameters are undefined or empty.");
@@ -186,19 +184,19 @@
 	         	, results.destFilename]);
 
 	};
-	
-	
+
+
 	/**
 	* @name rotate
 	* @param {object} options
 	* @param {function} cb
-	* @description This function will rotate an image 
+	* @description This function will rotate an image
 	*/
 	imageHandler.rotate = function rotate(options, cb) {
 
 		var template = {
 			currentDirectory: null,
-			currentDirectory: null,
+			currentFilename: null,
 			destDirectory:null,
 			destFilename: null,
 			direction: null,
@@ -210,8 +208,8 @@
 		var results = decorate(template, options);
 
 		//validation
-		if(isEmpty(results.currentDirectory) 
-			|| isEmpty(results.currentFilename) 
+		if(isEmpty(results.currentDirectory)
+			|| isEmpty(results.currentFilename)
 			|| isEmpty(results.direction)
 			|| isEmpty(results.degrees)){
 			cb("One or more parameters are undefined or empty.");
@@ -222,10 +220,10 @@
 			cb("Degrees must be valid");
 			return;
 		}
-		
+
 		switch(results.direction){
 			case "ANTICLOCKWISE":{
-				
+
 				//reverse rotations for anticlockwise.
 				if(results.degrees === 90){
 					finalRotation = 270;
@@ -236,11 +234,11 @@
 				}
 
 				break;
-			} 
+			}
 			case "CLOCKWISE":{
 				//tis all good man... keep going.
 				finalRotation = results.degrees;
-				
+
 				break;
 			}
 			default: {
