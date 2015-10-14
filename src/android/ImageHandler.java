@@ -1,6 +1,5 @@
 package net.alexyorke.imagehandler;
 
-
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -71,6 +70,7 @@ public class ImageHandler extends CordovaPlugin {
      */
     private void base64ToJpg(CallbackContext callbackContext, JSONArray args){
 
+        int imageQuality = 100;
         String base64Image;
         String directory;
         String imageName;
@@ -107,7 +107,7 @@ public class ImageHandler extends CordovaPlugin {
             Bitmap finalImage = whiteBackground(Base64ToBitmap(imageDataBytes));
 
             if(finalImage == null){
-                callbackContext.error("Could not save image");
+                callbackContext.error("Could parse image");
                 return;
             }
 
@@ -117,7 +117,7 @@ public class ImageHandler extends CordovaPlugin {
                 return;
             }
 
-            if(!saveImage(finalImage, file)){
+            if(!saveImage(finalImage, file, imageQuality)){
                 callbackContext.error("Could not save image");
                 return;
             }
@@ -132,9 +132,10 @@ public class ImageHandler extends CordovaPlugin {
     }
 
     /**
-     *
-     * @param callbackContext
-     * @param args
+     * This method will resize an image to a maximum width/height whilst
+     * maintaining the aspect ratio
+     * @param callbackContext callback
+     * @param args JSON arguments
      */
     private void resize(CallbackContext callbackContext, JSONArray args){
         String currentDirectory
@@ -143,7 +144,8 @@ public class ImageHandler extends CordovaPlugin {
                 , destDirectory
                 , destFilename
                 , destImagePath;
-        int maxSize;
+        int maxSize,
+                imageQuality = 100;
 
         try{
             currentDirectory = args.getString(0);
@@ -181,25 +183,34 @@ public class ImageHandler extends CordovaPlugin {
                 return;
             }
 
+            //get the image
             Bitmap currentImage = BitmapFactory.decodeFile(currImage.getPath());
             if (currentImage == null) {
                 callbackContext.error("Could not load image to be resized");
                 return;
             }
 
+            if(currentImage.getWidth() < maxSize && currentImage.getHeight() < maxSize){
+                callbackContext.error("Image is smaller than the specified size");
+                return;
+            }
+
+            //resize the image
             Bitmap resizedImage = getScaledBitmap(currentImage, maxSize);
             if (resizedImage == null) {
                 callbackContext.error("Could not resize image");
                 return;
             }
 
+            //get the file to save image into
             File destImage = new File(URI.create(destImagePath));
             if(!ConstructFileStructure(destImage)){
                 callbackContext.error("Could not create file structure");
                 return;
             }
 
-            if (!saveImage(resizedImage, destImage)) {
+            //save the image
+            if (!saveImage(resizedImage, destImage, imageQuality)) {
                 callbackContext.error("Could not save image");
                 return;
             }
@@ -219,7 +230,8 @@ public class ImageHandler extends CordovaPlugin {
                 , destDirectory
                 , destFilename
                 , destImagePath;
-        int thumbSize;
+        int thumbSize
+                , imageQuality = 90;
 
         try{
             currentDirectory = args.getString(0);
@@ -241,6 +253,7 @@ public class ImageHandler extends CordovaPlugin {
             return;
         }
 
+        //format paths and append THUMBNAIL if not specified
         currentDirectory = formatDirectory(currentDirectory);
         destDirectory =
                 formatDirectory((destDirectory.equals("null")) ? currentDirectory : destDirectory);
@@ -257,25 +270,29 @@ public class ImageHandler extends CordovaPlugin {
                 return;
             }
 
+            //load the image
             Bitmap currentImage = BitmapFactory.decodeFile(currImage.getPath());
             if (currentImage == null) {
                 callbackContext.error("Could not load the image");
                 return;
             }
 
-            Bitmap resizedImage = getThumbnailBitmap(currentImage, thumbSize);
-            if (resizedImage == null) {
+            //get thumbnail image
+            Bitmap thumbnailImage = getThumbnailBitmap(currentImage, thumbSize);
+            if (thumbnailImage == null) {
                 callbackContext.error("Could not create thumbnail");
                 return;
             }
 
+            //get file to save image to
             File destImage = new File(URI.create(destImagePath));
             if(!ConstructFileStructure(destImage)){
                 callbackContext.error("Could not create file structure");
                 return;
             }
 
-            if (!saveImage(resizedImage, destImage)) {
+            //save the image
+            if (!saveImage(thumbnailImage, destImage, imageQuality)) {
                 callbackContext.error("Could not save image");
                 return;
             }
@@ -288,6 +305,14 @@ public class ImageHandler extends CordovaPlugin {
         }
     }
 
+    /**
+     * This method will rotate a specified image clockwise
+     * If the destFilename does not exist, it will use the filename of the image
+     * if the destDirectory does not exist, it will use the current directory and replace
+     * the existing image if the filename is the same.
+     * @param callbackContext callback
+     * @param args arguments in JSON
+     */
     private void rotate(CallbackContext callbackContext, JSONArray args){
         String currentDirectory
                 , currentFilename
@@ -295,7 +320,8 @@ public class ImageHandler extends CordovaPlugin {
                 , destDirectory
                 , destFilename
                 , destImagePath;
-        int finalRotation;
+        int finalRotation
+                , imageQuality = 100;
 
         try{
             currentDirectory = args.getString(0);
@@ -310,6 +336,7 @@ public class ImageHandler extends CordovaPlugin {
             return;
         }
 
+        //checking for nulls as strings as null is parsed as a string
         if(currentDirectory.equals("null")
                 || currentFilename.equals("null")
                 || (finalRotation != 90 && finalRotation != 180 && finalRotation != 270)){
@@ -317,6 +344,7 @@ public class ImageHandler extends CordovaPlugin {
             return;
         }
 
+        //format paths
         currentDirectory = formatDirectory(currentDirectory);
         destDirectory =
                 formatDirectory((destDirectory.equals("null")) ? currentDirectory : destDirectory);
@@ -333,25 +361,29 @@ public class ImageHandler extends CordovaPlugin {
                 return;
             }
 
+            //get the current image
             Bitmap currentImage = BitmapFactory.decodeFile(currImage.getPath());
             if (currentImage == null) {
                 callbackContext.error("Could not load the image");
                 return;
             }
 
+            //rotate the image
             Bitmap rotatedImage = rotateBitmap(currentImage, finalRotation);
             if (rotatedImage == null) {
                 callbackContext.error("Could not rotate image");
                 return;
             }
 
+            //create file to save into
             File destImage = new File(URI.create(destImagePath));
             if(!ConstructFileStructure(destImage)){
                 callbackContext.error("Could not create file structure");
                 return;
             }
 
-            if (!saveImage(rotatedImage, destImage)) {
+            //save the image
+            if (!saveImage(rotatedImage, destImage, imageQuality)) {
                 callbackContext.error("Could not save image");
                 return;
             }
@@ -538,10 +570,11 @@ public class ImageHandler extends CordovaPlugin {
 
 
     /**
-     *
-     * @param image
-     * @param size
-     * @return
+     * This method will create a thumbnail of a given image as a square
+     * size X size.
+     * @param image image to generate thumbnail from
+     * @param size the determined size of the thumbnail
+     * @return bitmap of the thumbnail.
      */
     private Bitmap getThumbnailBitmap(Bitmap image, int size){
 
@@ -588,16 +621,16 @@ public class ImageHandler extends CordovaPlugin {
      * @param file file to save the image into
      * @return true if the image was able to save, false if not.
      */
-    private boolean saveImage(Bitmap image, File file){
+    private boolean saveImage(Bitmap image, File file, int quality){
 
-        if(image == null || file == null){
+        if(image == null || file == null || quality < 0 || quality > 100){
             return false;
         }
 
         FileOutputStream out = null;
         try {
             out = new FileOutputStream(file);
-            image.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            image.compress(Bitmap.CompressFormat.JPEG, quality, out);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -619,8 +652,8 @@ public class ImageHandler extends CordovaPlugin {
 
     /**
      *
-     * @param file
-     * @return
+     * @param file image file
+     * @return true if the directory structure now exists, false if not
      */
     private boolean ConstructFileStructure(File file){
         if(file == null){
@@ -643,6 +676,12 @@ public class ImageHandler extends CordovaPlugin {
     }
 
 
+    /**
+     * will rotate a bitmap image by a given angle
+     * @param source image to rotate
+     * @param angle degrees in which to rotate
+     * @return new bitmap of the rotated image
+     */
     private static Bitmap rotateBitmap(Bitmap source, int angle){
         if(source == null){
             return null;
