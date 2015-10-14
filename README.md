@@ -1,5 +1,5 @@
 #Cordova Image Handler Plugin
-A plugin  developed by [@yorke543](https://github.com/yorke543) and [@bitgapp](https://github.com/bitgapp) for the manipulation of images in Android and iOS.
+A plugin  developed by [@yorke543](https://github.com/yorke543) and [@romankisil](https://github.com/romankisil) for the manipulation of images in Android and iOS.
 
 ##How to use
 
