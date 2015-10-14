@@ -5,7 +5,7 @@ A plugin  developed by [@romankisil](https://github.com/romankisil) and [@yorke5
 
 This plugin provides a number of methods that can be used to manipulate images with the cordova framework. Installation is a simple process of running:
 
-`cordova plugin add https://github.com/yorke543/Cordova-Image-Handler.git`
+`cordova plugin add https://github.com/yorke543/Cordova-Plugin-Image-Handler.git`
 
 After the plugin has been installed succesfully, it is a simple case of calling the methods described below:
 
@@ -117,3 +117,5 @@ var cb = function(error, value){
 
 window.ImageHandler.rotate(options, cb);
 ```
+##Contributing
+Is there something missing, something broken or something just completely wrong? feel free to fork, fix and pull! 
