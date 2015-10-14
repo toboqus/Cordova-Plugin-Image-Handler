@@ -1,3 +1,5 @@
+//Created by Roman Kisil romankisilo@gmail.com on 14/10/2015
+
 #import "ImageHandler.h"
 
 @implementation ImageHandler
