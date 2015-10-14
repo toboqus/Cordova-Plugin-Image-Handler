@@ -1,9 +1,13 @@
 #Cordova Image Handler Plugin
-A plugin for the manipulation of images in Android and iOS
+A plugin for the manipulation of images in Android and iOS developed by [@yorke543](https://github.com/yorke543) and [@bitgapp](https://github.com/bitgapp)
 
 ##How to use
 
-This plugin provides a number of methods that can be used to manipulate images with the cordova framework
+This plugin provides a number of methods that can be used to manipulate images with the cordova framework. Installation is a simple process of running:
+
+`cordova plugin add https://github.com/yorke543/Cordova-Image-Handler.git`
+
+After the plugin has been installed succesfully, it is a simple case of calling the methods described below:
 
 ###base64ToJpg
 
