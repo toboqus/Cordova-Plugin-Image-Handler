@@ -1,5 +1,5 @@
 #Cordova Image Handler Plugin
-A plugin for the manipulation of images in Android and iOS developed by [@yorke543](https://github.com/yorke543) and [@bitgapp](https://github.com/bitgapp)
+A plugin  developed by [@yorke543](https://github.com/yorke543) and [@bitgapp](https://github.com/bitgapp) for the manipulation of images in Android and iOS.
 
 ##How to use
 
@@ -12,18 +12,25 @@ After the plugin has been installed succesfully, it is a simple case of calling 
 ###base64ToJpg
 
 ```javascript
+
+var options = {
+   base64string:"data:image/png;base64,iVBORw0KGg.....", //full string excluded
+	destDirectory:cordova.file.externalRootDirectory, //cordova file plugin can be used
+	destFilename:"new-image"// exclude the file extension
+}
+
 var cb = function(error, value){
    if(error){
-      //handle error
+      //handle error - This is a friendly string explaining what went wrong
       return;
     }
 
-   //returns filepath
+   //returns filepath in the format 'file:///...' if successful
    var filePath = value;
 
 }
 
-window.ImageHandler.base64ToJpg(base64string, destDirectory, destFilename, cb);
+window.ImageHandler.base64ToJpg(options, cb);
 ```
 
 ###resize
