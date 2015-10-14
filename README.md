@@ -11,13 +11,15 @@ After the plugin has been installed succesfully, it is a simple case of calling 
 
 ###base64ToJpg
 
+This method will convert a base64 encoded image string into a jpg file within the given directory with the specified filename.
+
 ```javascript
 
 var options = {
-   base64string:"data:image/png;base64,iVBORw0KGg.....", //full string excluded
-	destDirectory:cordova.file.externalRootDirectory, //cordova file plugin can be used
-	destFilename:"new-image"// exclude the file extension
-}
+	   	base64string:"data:image/png;base64,iVBORw0KGg.....", //full string excluded
+		destDirectory:cordova.file.externalRootDirectory, //cordova file plugin can be used
+		destFilename:"new-image"// exclude the file extension
+	}
 
 var cb = function(error, value){
    if(error){
@@ -35,21 +37,29 @@ window.ImageHandler.base64ToJpg(options, cb);
 
 ###resize
 
-```javascript
-var maxSize = 640,
-    cb = function(error, value){
-       if(error){
-          //handle error
-          return;
-        }
+This method will resize a given image to a maximum width/heigh whilst maintaining its aspect ratio. If the destDirectory is omitted, it will save the image in the current directory. if the destFilename is omitted, it will save the image with the currentFilename. if both destFilename and destDirectory are omitted, it will replace the selected image.
 
-       //returns filepath
+```javascript
+var options = {
+		currentDirectory: cordova.file.externalRootDirectory,
+		currentFilename: "originalImage",
+		maxSize: 640, //pixels
+		destDirectory: cordova.file.externalRootDirectory,
+		destFilename: "resizedImage"
+	};
+	
+var cb = function cb(error, value){
+	if(error){
+	  //handle error
+	  return;
+	}
+
+       //returns filepath of resized image: file:///storage/emulated/0/resizedImage.jpg (android)
        var filePath = value;
     };
 
-window.ImageHandler.resize(fileLocation, maxsize, cb);
+window.ImageHandler.resize(options, cb);
 ```
-
 
 ###thumbnail
 
