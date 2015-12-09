@@ -1,5 +1,5 @@
 #Cordova Image Handler Plugin
-A plugin  developed by [@romankisil](https://github.com/romankisil) and [@tabokus](https://github.com/tabokus) for the manipulation of images in Android and iOS.
+A plugin  developed by [@romankisil](https://github.com/romankisil) and [@toboqus](https://github.com/toboqus) for the manipulation of images in Android and iOS.
 
 ##How to use
 
