@@ -21,14 +21,14 @@
 	*/
 	var isValid = function isValid(correctArray, value){
 
-		for(var valueArray of correctArray){
-			if(value === valueArray){
+		for(var i in correctArray){
+			if(value === correctArray[i]){
 				return true;
 			}
 		}
 
 		return false;
-	}
+	};
 
 
 	/**
@@ -49,7 +49,7 @@
 		}
 
 		return result;
-	}
+	};
 
 	/**
 	* @name base64ToJpg
@@ -66,7 +66,7 @@
 			base64string:null,
 			destDirectory:null,
 			destFilename:null
-		}
+		};
 
 		var results = decorate(template, options);
 
@@ -93,7 +93,7 @@
              , results.destDirectory
              , results.destFilename]);
 
-	}
+	};
 
 
 	/**
@@ -136,7 +136,7 @@
              , results.destDirectory
              , results.destFilename]);
 
-	}
+	};
 
 
 	/**
@@ -154,7 +154,7 @@
 			destDirectory: null,
 			destFilename: null,
 			thumbSize: null
-		}
+		};
 
 		var results = decorate(template, options);
 
