@@ -19,28 +19,42 @@
  
  */
 - (void)base64ToJpg:(CDVInvokedUrlCommand*)command{
-    
+
     [self.commandDelegate runInBackground:^{
+
+
         //Check if any parameters are missing
         if([[command arguments] objectAtIndex:0] == [NSNull null] || [[command arguments] objectAtIndex:1] == [NSNull null] || [[command arguments] objectAtIndex:2] == [NSNull null]){
             [self callback:CDVCommandStatus_ERROR withMessage:@"Parameters missing" toCallbackId:command.callbackId];
         }
-        
+
         NSString* imageBase64 = [[command arguments] objectAtIndex:0];
         NSString* destDirectory = [[command arguments] objectAtIndex:1];
         NSString* destFilename = [[command arguments] objectAtIndex:2];
-        
+        NSString* doTimeStamp = [[command arguments] objectAtIndex:3];
+
+
         //Check if parameters are invalid
         if([imageBase64 length] == 0 || [destDirectory length] == 0 || [destFilename length] == 0){
             return;
         }
+
         destDirectory = [self correctPath:destDirectory];
-        
+
         //Convert base64 to JPG image
         NSURL *url = [NSURL URLWithString:imageBase64];
         NSData *imageData = [NSData dataWithContentsOfURL:url];
         UIImage *image = [UIImage imageWithData:imageData];
+        
+        //Timestamp the image if needed
+        if([doTimeStamp isEqualToString:@"YES"]){
+            NSDateFormatter *dateFormatter=[[NSDateFormatter alloc] init];
+            [dateFormatter setDateFormat:@"dd/MM/yyyy hh:mm"];
+            image = [self drawText:[dateFormatter stringFromDate:[NSDate date]] inImage:image atPoint:CGPointMake(10, 10)];
+        }
+        
         NSData *imageJPGData = UIImageJPEGRepresentation(image, 1.0);
+
         
         //Check if destination directory exists, if not create the directory
         destDirectory = [destDirectory substringFromIndex:7]; //Subtracting "file://" url unrecognized by Obj-C
@@ -488,8 +502,9 @@
             [self callback:CDVCommandStatus_NO_RESULT withMessage:@"Thumbnail wasn't generated" toCallbackId:command.callbackId];
         }
     }];
-
 }
+
+
 
 #pragma mark - Assisting methods
 /**
@@ -510,6 +525,58 @@
     UIGraphicsEndImageContext();
     return newImage;
 }
+
+/**
+ Draw stroked white text on an image
+ 
+ @param text
+ NSString to be drawn.
+ @param image
+ UIImage to be drawn in
+ @param point
+ CGPoint at which to draw the text
+ @returns UIImage
+ Returns the modified image
+ */
+-(UIImage*) drawText:(NSString*) text
+             inImage:(UIImage*)  image
+             atPoint:(CGPoint)   point
+{
+    UIGraphicsBeginImageContextWithOptions(image.size, YES, 0.0f);
+    [image drawInRect:CGRectMake(0,0,image.size.width,image.size.height)];
+    CGRect rect = CGRectMake(point.x, point.y, image.size.width, image.size.height);
+    [[UIColor whiteColor] set];
+    
+    UIFont *font = [UIFont systemFontOfSize:image.size.width/20];
+    if([text respondsToSelector:@selector(drawInRect:withAttributes:)])
+    {
+        //iOS 7
+        
+        
+        NSDictionary *att = @{NSFontAttributeName:font
+                              ,NSForegroundColorAttributeName: [UIColor whiteColor]
+                              };
+        [text drawInRect:rect withAttributes:att];
+        
+        att = @{NSFontAttributeName:font
+                ,NSStrokeWidthAttributeName: [NSNumber numberWithFloat:[font pointSize]/10]
+                ,NSStrokeColorAttributeName: [UIColor blackColor]
+                };
+        [text drawInRect:rect withAttributes:att];
+        
+    }
+    else
+    {
+        //legacy support
+        [text drawInRect:CGRectIntegral(rect) withFont:font];
+    }
+    
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return newImage;
+}
+
 
 /**
  Crop image to a new CGRect
