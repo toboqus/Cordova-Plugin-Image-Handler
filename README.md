@@ -19,6 +19,7 @@ var options = {
 	   	base64string:"data:image/png;base64,iVBORw0KGg.....", //full string excluded
 		destDirectory:cordova.file.externalRootDirectory, //cordova file plugin can be used
 		destFilename:"new-image"// exclude the file extension
+		doTimeStamp: "YES" //YES will include a visual timestamp on the image, NO will exclude it, defaults to NO
 	}
 
 var cb = function(error, value){
