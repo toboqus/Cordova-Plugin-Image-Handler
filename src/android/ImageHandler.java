@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.util.Base64;
 
 import org.apache.cordova.CallbackContext;
@@ -16,7 +17,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
-
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ImageHandler extends CordovaPlugin {
 
@@ -75,11 +77,13 @@ public class ImageHandler extends CordovaPlugin {
         String directory;
         String imageName;
         String mFilePath;
+        String doTimeStamp;
 
         try {
             base64Image = args.getString(0);
             directory = args.getString(1);
             imageName = args.getString(2);
+            doTimeStamp = args.getString(3);
 
         }catch(JSONException e){
             e.printStackTrace();
@@ -105,6 +109,11 @@ public class ImageHandler extends CordovaPlugin {
         try{
             String imageDataBytes = base64Image.substring(base64Image.indexOf(",") + 1);
             Bitmap finalImage = whiteBackground(Base64ToBitmap(imageDataBytes));
+            
+            //timestamp the image
+            if(doTimeStamp.equals("YES")){
+            	finalImage = timestamp(finalImage);
+            }
 
             if(finalImage == null){
                 callbackContext.error("Could parse image");
@@ -691,6 +700,48 @@ public class ImageHandler extends CordovaPlugin {
         matrix.postRotate((float)angle);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
+    
+    /**
+     *  will timestamp the image with the current time
+     *  and date
+     *  @param source image to timestamp
+     */
+    private Bitmap timestamp(Bitmap source){
+    	
+    	if(source == null){
+    		return null;
+    	}
+    	
+    	
+    	Bitmap bitmap = source.copy(source.getConfig(), true);
+    	Canvas canvas = new Canvas(bitmap);
+    	
+    	int fontSize = source.getWidth()/20;
+    	int strokeSize = fontSize/10;
+    	
+    	int x = 10;
+    	int y = 10 + fontSize;
+    	
+    	Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    	paint.setColor(Color.WHITE);
+    	paint.setTextSize(fontSize);
+    	paint.setShadowLayer(strokeSize, 0, 0, Color.BLACK);
+    
+    	canvas.drawText(getTimeStamp(), x, y, paint);
+    	
+    	return bitmap;
+    	
+    }
+    
+    
+    private String getTimeStamp(){
+    	
+    	 SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+         String currentTimeStamp = dateFormat.format(new Date()); // Find todays date
+
+         return currentTimeStamp;
+    }
+    
 
 
 }
