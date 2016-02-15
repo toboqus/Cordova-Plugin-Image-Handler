@@ -21,14 +21,14 @@
 	*/
 	var isValid = function isValid(correctArray, value){
 
-		for(var i in correctArray){
-			if(value === correctArray[i]){
+		for(var valueArray of correctArray){
+			if(value === valueArray){
 				return true;
 			}
 		}
 
 		return false;
-	};
+	}
 
 
 	/**
@@ -49,7 +49,7 @@
 		}
 
 		return result;
-	};
+	}
 
 	/**
 	* @name base64ToJpg
@@ -65,7 +65,8 @@
 		var template = {
 			base64string:null,
 			destDirectory:null,
-			destFilename:null
+			destFilename:null,
+			doTimeStamp:'NO'
 		};
 
 		var results = decorate(template, options);
@@ -91,9 +92,10 @@
              "base64ToJpg",
              [results.base64string
              , results.destDirectory
-             , results.destFilename]);
+             , results.destFilename
+			 , results.doTimeStamp]);
 
-	};
+	}
 
 
 	/**
@@ -136,7 +138,7 @@
              , results.destDirectory
              , results.destFilename]);
 
-	};
+	}
 
 
 	/**
@@ -154,7 +156,7 @@
 			destDirectory: null,
 			destFilename: null,
 			thumbSize: null
-		};
+		}
 
 		var results = decorate(template, options);
 
