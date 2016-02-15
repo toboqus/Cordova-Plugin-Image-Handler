@@ -5,7 +5,7 @@ A plugin  developed by [@romankisil](https://github.com/romankisil) and [@toboqu
 
 This plugin provides a number of methods that can be used to manipulate images with the cordova framework. Installation is a simple process of running:
 
-`cordova plugin add https://github.com/tabokus/Cordova-Plugin-Image-Handler.git`
+`cordova plugin add https://github.com/taboqus/Cordova-Plugin-Image-Handler.git`
 
 After the plugin has been installed succesfully, it is a simple case of calling the methods described below:
 
