@@ -55,12 +55,100 @@ public class ImageHandler extends CordovaPlugin {
                     rotate(callbackContext, args);
                 }
             });
+        }else if(action.equals("timestamp")){
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    timestamp(callbackContext, args);
+                }
+            });
         }else{
             return false;
         }
 
         return true;
 
+    }
+    
+    /**
+     * This method will add a timestamp to the photo.
+     * @param callbackContext callback to respond with
+     * @param args arguments
+     */
+    private void timestamp(CallbackContext callbackContext, JSONArray args){
+		    	String currentDirectory
+		        , currentFilename
+		        , currentImagePath
+		        , destDirectory
+		        , destFilename
+		        , destImagePath;
+		
+		try{
+		    currentDirectory = args.getString(0);
+		    currentFilename = args.getString(1);
+		    destDirectory = args.getString(2);
+		    destFilename = args.getString(3);
+		
+		}catch(JSONException e){
+		    e.printStackTrace();
+		    callbackContext.error("Could not parse the parameters");
+		    return;
+		}
+		
+		if(currentDirectory.equals("null")
+		        || currentFilename.equals("null")){
+		    callbackContext.error("Could not parse the parameters");
+		    return;
+		}
+		
+		currentDirectory = formatDirectory(currentDirectory);
+		destDirectory =
+		        formatDirectory((destDirectory.equals("null")) ? currentDirectory : destDirectory);
+		destFilename =  (destFilename.equals("null")) ? currentFilename : destFilename;
+		
+		try {
+		    destImagePath = constructImagePath(destDirectory, destFilename);
+		    currentImagePath = constructImagePath(currentDirectory, currentFilename);
+		    File currImage = new File(URI.create(currentImagePath));
+		
+		    //check if the image exists
+		    if (!currImage.exists()) {
+		        callbackContext.error("Image does not exist!");
+		        return;
+		    }
+		
+		    //get the image
+		    Bitmap currentImage = BitmapFactory.decodeFile(currImage.getPath());
+		    if (currentImage == null) {
+		        callbackContext.error("Could not load image to be resized");
+		        return;
+		    }
+		
+		    //resize the image
+		    Bitmap timestampedImage = addTimeStamp(currentImage);
+		    if (timestampedImage == null) {
+		        callbackContext.error("Could not timestamp image");
+		        return;
+		    }
+		
+		    //get the file to save image into
+		    File destImage = new File(URI.create(destImagePath));
+		    if(!ConstructFileStructure(destImage)){
+		        callbackContext.error("Could not create file structure");
+		        return;
+		    }
+		
+		    //save the image
+		    if (!saveImage(resizedImage, destImage, imageQuality)) {
+		        callbackContext.error("Could not save image");
+		        return;
+		    }
+		
+		    callbackContext.success(destImagePath); // Thread-safe.
+		
+		}catch(Exception e){
+		    e.printStackTrace();
+		    callbackContext.error("Could not save image");
+		}
     }
 
 
@@ -77,13 +165,11 @@ public class ImageHandler extends CordovaPlugin {
         String directory;
         String imageName;
         String mFilePath;
-        String doTimeStamp;
 
         try {
             base64Image = args.getString(0);
             directory = args.getString(1);
             imageName = args.getString(2);
-            doTimeStamp = args.getString(3);
 
         }catch(JSONException e){
             e.printStackTrace();
@@ -109,11 +195,6 @@ public class ImageHandler extends CordovaPlugin {
         try{
             String imageDataBytes = base64Image.substring(base64Image.indexOf(",") + 1);
             Bitmap finalImage = whiteBackground(Base64ToBitmap(imageDataBytes));
-            
-            //timestamp the image
-            if(doTimeStamp.equals("YES")){
-            	finalImage = timestamp(finalImage);
-            }
 
             if(finalImage == null){
                 callbackContext.error("Could parse image");
@@ -706,7 +787,7 @@ public class ImageHandler extends CordovaPlugin {
      *  and date
      *  @param source image to timestamp
      */
-    private Bitmap timestamp(Bitmap source){
+    private Bitmap addTimeStamp(Bitmap source){
     	
     	if(source == null){
     		return null;
