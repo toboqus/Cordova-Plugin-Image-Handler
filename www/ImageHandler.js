@@ -139,6 +139,44 @@
              , results.destFilename]);
 
 	}
+	
+	/**
+	* @name timestamp
+	* @param {object} options
+	* @param {function} cb
+	* @description This function will timestamp an image with the current date and time.
+	*/
+	imageHandler.timestamp = function timestamp(options, cb) {
+		var template = {
+			currentDirectory: null,
+			currentFilename: null,
+			destDirectory: null,
+			destFilename: null
+		}
+
+		var results = decorate(template, options);
+		if(isEmpty(results.currentDirectory)
+			|| isEmpty(results.currentFilename)){
+			cb("One or more parameters are undefined or empty.");
+			return;
+		}
+
+		//do magic here
+		exec(
+		 	 function(winParam) {
+	 	 		cb(null, winParam);
+	 		 },
+             function(error) {
+             	cb(error);
+             },
+             "ImageHandler",
+             "timestamp",
+             [results.currentDirectory
+             , results.currentFilename
+             , results.destDirectory
+             , results.destFilename]);
+
+	}
 
 
 	/**
