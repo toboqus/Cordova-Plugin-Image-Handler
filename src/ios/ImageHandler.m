@@ -639,11 +639,11 @@
     [image drawInRect:CGRectMake(0,0,image.size.width,image.size.height)];
     CGRect rect = CGRectMake(point.x, point.y, image.size.width, image.size.height);
     [[UIColor whiteColor] set];
-
-    if(image.size.width =< image.size.height){
-        UIFont *font = [UIFont systemFontOfSize:image.size.width/20];
+    UIFont *font;
+    if(image.size.width < image.size.height){
+        font = [UIFont systemFontOfSize:image.size.width/20];
     }else{
-        UIFont *font = [UIFont systemFontOfSize:image.size.height/20];
+        font = [UIFont systemFontOfSize:image.size.height/20];
     }
 
     if([text respondsToSelector:@selector(drawInRect:withAttributes:)])
