@@ -46,12 +46,6 @@
         NSData *imageData = [NSData dataWithContentsOfURL:url];
         UIImage *image = [UIImage imageWithData:imageData];
         
-        //Timestamp the image if needed
-        if([doTimeStamp isEqualToString:@"YES"]){
-            NSDateFormatter *dateFormatter=[[NSDateFormatter alloc] init];
-            [dateFormatter setDateFormat:@"dd/MM/yyyy hh:mm"];
-            image = [self drawText:[dateFormatter stringFromDate:[NSDate date]] inImage:image atPoint:CGPointMake(10, 10)];
-        }
         
         NSData *imageJPGData = UIImageJPEGRepresentation(image, 1.0);
 
@@ -166,6 +160,8 @@
             CGSize newSize = CGSizeMake([maxSize intValue], [maxSize intValue]);
             resizedImage = [self imageWithImage:image scaledToSize:newSize];
         }
+        
+        
         
         //Save the image
         if (resizedImage) {
@@ -503,6 +499,104 @@
         }
     }];
 }
+/**
+ This method timestamps an image with the phones local time in a specified directory
+ and saves it in any other directory with a specified name.
+ If the final directory or name are not specified it will
+ overwrite the original image.
+ ONLY DEALS WITH JPGs!
+ 
+ - Required parameters:
+ @param currentDirectory
+ (String) Directory path for the original image
+ @param currentFilename
+ (String) Original image filename w/o the .jpg extension
+
+ 
+- Optional parameters:
+@param destDirectory
+(String) Destination directory in which the new JPG image will be saved.
+@param destFilename
+(String) JPG filename w/o the .jpg extension.
+*/
+- (void)timestamp:(CDVInvokedUrlCommand*)command{
+    
+    [self.commandDelegate runInBackground:^{
+        //Check if any parameters are missing
+        if([[command arguments] objectAtIndex:0] == [NSNull null] || [[command arguments] objectAtIndex:1] == [NSNull null]){
+            [self callback:CDVCommandStatus_ERROR withMessage:@"Parameters missing" toCallbackId:command.callbackId];
+        }
+        NSString* currentDirectory = [[command arguments] objectAtIndex:0];
+        NSString* currentFilename = [[command arguments] objectAtIndex:1];
+        NSString* destDirectory;
+        NSString* destFilename;
+        
+        //Check if destination parameters were specified
+        if([[command arguments] objectAtIndex:2] == [NSNull null]){
+            destDirectory = @"";
+        }else{
+            destDirectory = [[command arguments] objectAtIndex:2];
+            destDirectory = [destDirectory substringFromIndex:7];
+            destDirectory = [self correctPath:destDirectory];
+        }
+        if([[command arguments] objectAtIndex:3] == [NSNull null]){
+            destFilename = @"";
+        }else{
+            destFilename = [[command arguments] objectAtIndex:3];
+        }
+        
+        //Get the original image
+        currentDirectory = [currentDirectory substringFromIndex:7];
+        currentDirectory = [self correctPath:currentDirectory];
+        NSString* fullPath = [NSString stringWithFormat:@"%@%@.jpg", currentDirectory, currentFilename];
+        UIImage *image = [UIImage imageWithContentsOfFile:fullPath];
+        
+        //Timestamp the image
+        NSDateFormatter *dateFormatter=[[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"dd/MM/yyyy hh:mm"];
+        UIImage *timestampedImage = [self drawText:[dateFormatter stringFromDate:[NSDate date]] inImage:image atPoint:CGPointMake(10, 10)];
+        
+        
+        //Save the image
+        if (timestampedImage) {
+            //Construct the final path of the resized image
+            NSString *newPath;
+            if ([destDirectory length] == 0 || [destFilename length] == 0) {
+                if ([destDirectory length] == 0) {newPath = currentDirectory;}else{newPath = destDirectory;}
+                if ([destFilename length] == 0) {newPath = [newPath stringByAppendingString:[currentFilename stringByAppendingString:@".jpg"]];
+                }else{newPath = [newPath stringByAppendingString:[destFilename stringByAppendingString:@".jpg"]];}
+            }else{
+                newPath = [destDirectory stringByAppendingString: [destFilename stringByAppendingString:@".jpg"]];
+            }
+            
+            //Generate destination directory
+            if ([destDirectory length] != 0) {
+                BOOL isDirectory;
+                if([[NSFileManager defaultManager] fileExistsAtPath:destDirectory isDirectory:&isDirectory] == false){
+                    NSError * error = nil;
+                    [[NSFileManager defaultManager] createDirectoryAtPath:destDirectory
+                                              withIntermediateDirectories:YES
+                                                               attributes:nil
+                                                                    error:&error];
+                    if (error != nil) {
+                        NSLog(@"error creating directory: %@", error);
+                        [self callback:CDVCommandStatus_ERROR withMessage:@"Error creating directory" toCallbackId:command.callbackId];
+                    }
+                }
+            }
+            //Save image
+            if ([UIImageJPEGRepresentation(timestampedImage, 1.0) writeToFile:newPath atomically:NO]) {
+                [self callback:CDVCommandStatus_OK withMessage:[NSString stringWithFormat:@"file://%@", newPath] toCallbackId:command.callbackId];
+            }else{
+                [self callback:CDVCommandStatus_ERROR withMessage:@"Failed to save image" toCallbackId:command.callbackId];
+            }
+        }else{
+            [self callback:CDVCommandStatus_NO_RESULT withMessage:@"Image wasn't timestamped" toCallbackId:command.callbackId];
+        }
+    }];
+    
+}
+
 
 
 
