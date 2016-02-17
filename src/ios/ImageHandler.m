@@ -31,7 +31,6 @@
         NSString* imageBase64 = [[command arguments] objectAtIndex:0];
         NSString* destDirectory = [[command arguments] objectAtIndex:1];
         NSString* destFilename = [[command arguments] objectAtIndex:2];
-        NSString* doTimeStamp = [[command arguments] objectAtIndex:3];
 
 
         //Check if parameters are invalid
@@ -640,8 +639,13 @@
     [image drawInRect:CGRectMake(0,0,image.size.width,image.size.height)];
     CGRect rect = CGRectMake(point.x, point.y, image.size.width, image.size.height);
     [[UIColor whiteColor] set];
-    
-    UIFont *font = [UIFont systemFontOfSize:image.size.width/20];
+
+    if(image.size.width =< image.size.height){
+        UIFont *font = [UIFont systemFontOfSize:image.size.width/20];
+    }else{
+        UIFont *font = [UIFont systemFontOfSize:image.size.height/20];
+    }
+
     if([text respondsToSelector:@selector(drawInRect:withAttributes:)])
     {
         //iOS 7
