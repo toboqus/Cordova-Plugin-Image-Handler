@@ -795,11 +795,12 @@ public class ImageHandler extends CordovaPlugin {
     		return null;
     	}
     	
-    	
     	Bitmap bitmap = source.copy(source.getConfig(), true);
     	Canvas canvas = new Canvas(bitmap);
     	
-    	int fontSize = source.getWidth()/20;
+    	int smallest = (source.getWidth() < source.getHeight()) ? source.getWidth() : source.getHeight();
+    	
+    	int fontSize = smallest/20;
     	int strokeSize = fontSize/10;
     	
     	int x = 10;
