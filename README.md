@@ -118,5 +118,30 @@ var cb = function(error, value){
 
 window.ImageHandler.rotate(options, cb);
 ```
+
+###timestamp
+
+This function will timestamp a given image in the top left hand corner with the current system date and time. If the destDirectory is omitted, it will save the image in the current directory. if the destFilename is omitted, it will save the image with the currentFilename. if both destFilename and destDirectory are omitted, it will replace the selected image.
+
+```javascript
+var options = {
+		currentDirectory: cordova.file.externalRootDirectory,
+		currentFilename: "originalImage",
+		destDirectory: cordova.file.externalRootDirectory,
+		destFilename: "resizedImage"
+	};
+	
+var cb = function cb(error, value){
+	if(error){
+	  //handle error
+	  return;
+	}
+
+       //returns filepath of resized image: file:///storage/emulated/0/timestampedImage.jpg (android)
+       var filePath = value;
+    };
+
+window.ImageHandler.timestamp(options, cb);
+```
 ##Contributing
 Is there something missing, something broken or something just completely wrong? feel free to fork, fix and pull! 
