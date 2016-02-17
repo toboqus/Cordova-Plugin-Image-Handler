@@ -75,12 +75,14 @@ public class ImageHandler extends CordovaPlugin {
      * @param args arguments
      */
     private void timestamp(CallbackContext callbackContext, JSONArray args){
-		    	String currentDirectory
-		        , currentFilename
-		        , currentImagePath
-		        , destDirectory
-		        , destFilename
-		        , destImagePath;
+	    	String currentDirectory
+	        , currentFilename
+	        , currentImagePath
+	        , destDirectory
+	        , destFilename
+	        , destImagePath;
+	        
+	        int imageQuality = 100;
 		
 		try{
 		    currentDirectory = args.getString(0);
@@ -138,7 +140,7 @@ public class ImageHandler extends CordovaPlugin {
 		    }
 		
 		    //save the image
-		    if (!saveImage(resizedImage, destImage, imageQuality)) {
+		    if (!saveImage(timestampedImage, destImage, imageQuality)) {
 		        callbackContext.error("Could not save image");
 		        return;
 		    }
