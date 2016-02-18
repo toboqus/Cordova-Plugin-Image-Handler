@@ -148,16 +148,16 @@
             CGFloat factor = [image size].width / [maxSize intValue];
             int newHeight = (int)[image size].height/factor;
             CGSize newSize = CGSizeMake([maxSize intValue], newHeight);
-            resizedImage = [self imageWithImage:image scaledToSize:newSize];
+            resizedImage = [self imageWithScaledImage:image scaledToSize:newSize];
         }else if([image size].height > [image size].width){
             //Portrait
             CGFloat factor = [image size].height / [maxSize intValue];
             int newWidth = (int)[image size].width/factor;
             CGSize newSize = CGSizeMake(newWidth, [maxSize intValue]);
-            resizedImage = [self imageWithImage:image scaledToSize:newSize];
+            resizedImage = [self imageWithScaledImage:image scaledToSize:newSize];
         }else{
             CGSize newSize = CGSizeMake([maxSize intValue], [maxSize intValue]);
-            resizedImage = [self imageWithImage:image scaledToSize:newSize];
+            resizedImage = [self imageWithScaledImage:image scaledToSize:newSize];
         }
         
         
@@ -190,7 +190,7 @@
                 }
             }
             //Save image
-            if ([UIImageJPEGRepresentation(resizedImage, 1.0) writeToFile:newPath atomically:NO]) {
+            if ([UIImageJPEGRepresentation(resizedImage, 1.0) writeToFile:newPath atomically:YES]) {
                 [self callback:CDVCommandStatus_OK withMessage:[NSString stringWithFormat:@"file://%@", newPath] toCallbackId:command.callbackId];
             }else{
                 [self callback:CDVCommandStatus_ERROR withMessage:@"Failed to save image" toCallbackId:command.callbackId];
@@ -552,7 +552,7 @@
         
         //Timestamp the image
         NSDateFormatter *dateFormatter=[[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"dd/MM/yyyy hh:mm"];
+        [dateFormatter setDateFormat:@"dd/MM/yyyy HH:mm"];
         UIImage *timestampedImage = [self drawText:[dateFormatter stringFromDate:[NSDate date]] inImage:image atPoint:CGPointMake(10, 10)];
         
         
@@ -610,8 +610,29 @@
  @returns UIImage
         Returns the resized image
  */
--(UIImage *)imageWithImage:(UIImage *)image scaledToSize:(CGSize)newSize {
+-(UIImage *)imageWithScaledImage:(UIImage *)image scaledToSize:(CGSize)newSize {
     
+    if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)] && [[UIScreen mainScreen] scale] == 2.0){
+        newSize = CGSizeMake(newSize.width/2, newSize.height/2);
+    }
+    UIGraphicsBeginImageContextWithOptions(newSize, NO, 1.0);
+    [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return newImage;
+}
+
+/**
+ Resize image to a new CGSize
+ 
+ @param image
+ UIImage to be resized.
+ @param newSize
+ CGSize of the output image
+ @returns UIImage
+ Returns the resized image
+ */
+-(UIImage *)imageWithImage:(UIImage *)image scaledToSize:(CGSize)newSize {
     UIGraphicsBeginImageContextWithOptions(newSize, NO, 1.0);
     [image drawInRect:CGRectMake(0, 0, newSize.width, newSize.height)];
     UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
